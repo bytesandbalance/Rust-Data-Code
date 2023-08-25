@@ -2,7 +2,7 @@ pub mod models;
 pub mod schema;
 
 use self::models::EarthquakeEventModel;
-use chrono::{NaiveDateTime, Utc};
+use chrono::NaiveDateTime;
 use common::earthquake_event::EarthquakeEvent;
 use diesel::prelude::*;
 use dotenvy::dotenv;
