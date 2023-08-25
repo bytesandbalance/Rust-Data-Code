@@ -10,7 +10,7 @@ fn main() -> anyhow::Result<()> {
 
     let eqs = run_fetch(start_time, end_time, min_magnitude)?;
     let eqs_model = convert_to_model(eqs);
-    insert_earthquake_events(connection, eqs_model);
+    insert_earthquake_events(connection, eqs_model)?;
 
     Ok(())
 }
