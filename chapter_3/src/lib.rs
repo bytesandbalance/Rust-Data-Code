@@ -29,7 +29,7 @@ pub fn insert_earthquake_events(
     Ok(())
 }
 
-fn convert_to_model(events: &[EarthquakeEvent]) -> Vec<EarthquakeEventModel> {
+pub fn convert_to_model(events: &[EarthquakeEvent]) -> Vec<EarthquakeEventModel> {
     events
         .iter()
         .map(|event| {
