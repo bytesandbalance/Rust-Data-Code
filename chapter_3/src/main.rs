@@ -1,7 +1,6 @@
 pub mod fetch;
-pub mod lib;
 use self::fetch::run_fetch;
-use self::lib::{convert_to_model, establish_connection, insert_earthquake_events};
+use chapter_3::{convert_to_model, establish_connection, insert_earthquake_events};
 
 fn main() -> anyhow::Result<()> {
     let start_time = "2014-01-01";
