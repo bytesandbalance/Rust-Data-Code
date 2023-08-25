@@ -18,9 +18,9 @@ pub fn establish_connection() -> PgConnection {
 
 pub fn insert_earthquake_events(
     conn: &mut PgConnection,
-    events: &[EarthquakeEventModel],
+    events: Vec<EarthquakeEventModel>,
 ) -> Result<(), diesel::result::Error> {
-    use self::schema::earthquake_events;
+    use schema::earthquake_events;
 
     diesel::insert_into(earthquake_events::table)
         .values(events)
@@ -29,7 +29,7 @@ pub fn insert_earthquake_events(
     Ok(())
 }
 
-pub fn convert_to_model(events: &[EarthquakeEvent]) -> Vec<EarthquakeEventModel> {
+pub fn convert_to_model(events: Vec<EarthquakeEvent>) -> Vec<EarthquakeEventModel> {
     events
         .iter()
         .map(|event| {
