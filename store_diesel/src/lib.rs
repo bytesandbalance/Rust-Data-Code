@@ -31,16 +31,16 @@ pub fn insert_earthquake_events(
 
 pub fn convert_to_model(events: Vec<EarthquakeEvent>) -> Vec<EarthquakeEventModel> {
     events
-        .iter()
+        .into_iter()
         .map(|event| {
-            let time = NaiveDateTime::from_timestamp_opt(event.time, 0);
-            let updated = NaiveDateTime::from_timestamp_opt(event.updated, 0);
+            let time = NaiveDateTime::from_timestamp_opt(event.time / 1000, 0);
+            let updated = NaiveDateTime::from_timestamp_opt(event.updated / 1000, 0);
 
             EarthquakeEventModel {
                 mag: event.mag,
                 place: event.place.clone(),
-                time,
-                updated,
+                time: time,
+                updated: updated,
                 tsunami: event.tsunami,
                 lon: event.coordinates[0],
                 lat: event.coordinates[1],

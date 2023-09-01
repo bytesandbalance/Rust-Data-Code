@@ -1,8 +1,9 @@
 [workspace]
 
 members = [
-    "chapter_1",
-    "chapter_3",
+    "fetch",
+    "periodic_fetch",
+    "store_diesel",
     "common"
 ]
 

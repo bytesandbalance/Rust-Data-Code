@@ -1,6 +1,6 @@
-use crate::earthquake_event::*;
-use crate::utils::format_time;
 use chrono::Utc;
+use common::earthquake_event::*;
+use common::utils::format_time;
 use std::thread;
 use std::time::Duration;
 
