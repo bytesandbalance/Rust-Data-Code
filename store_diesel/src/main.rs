@@ -9,7 +9,7 @@ fn main() -> anyhow::Result<()> {
     let connection = &mut establish_connection();
 
     let eqs = run_fetch(start_time, end_time, min_magnitude)?;
-    let eqs_model = convert_to_model(eqs);
+    let eqs_model: Vec<store_diesel::models::EarthquakeEventModel> = convert_to_model(eqs);
     insert_earthquake_events(connection, eqs_model)?;
 
     Ok(())

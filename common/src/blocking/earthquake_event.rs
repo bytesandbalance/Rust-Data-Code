@@ -1,12 +1,10 @@
-use async_trait::async_trait;
 // Define a trait for earthquake data sources
 use serde::{Deserialize, Serialize}; // Import serde traits for serialization/deserialization
 
-#[async_trait]
 pub trait EarthquakeDataSource {
     type Error;
 
-    async fn fetch_earthquake_data(
+    fn fetch_earthquake_data(
         &self,
         format: &str,
         start_time: &str,
@@ -15,11 +13,10 @@ pub trait EarthquakeDataSource {
     ) -> Result<Vec<EarthquakeEvent>, Self::Error>;
 }
 
-#[async_trait]
 impl EarthquakeDataSource for UsgsDataSource {
     type Error = Errors;
 
-    async fn fetch_earthquake_data(
+    fn fetch_earthquake_data(
         &self,
         format: &str,
         start_time: &str,
@@ -35,13 +32,13 @@ impl EarthquakeDataSource for UsgsDataSource {
         println!("{:?}", url);
 
         // Make the HTTP request to the USGS API
-        let response = reqwest::get(&url).await?; // todo: async features: #[cfg(feature = "async")]
+        let response = reqwest::blocking::get(&url)?; // todo: async features: #[cfg(feature = "async")]
 
         // Check if the response was successful
         match response.status() {
             reqwest::StatusCode::OK => {
                 // Parse the GeoJSON response into EarthquakeEvent objects
-                let earthquake_data: GeoJsonData = response.json().await?;
+                let earthquake_data: GeoJsonData = response.json()?;
                 let earthquake_events: Vec<EarthquakeEvent> = earthquake_data
                     .features
                     .into_iter()

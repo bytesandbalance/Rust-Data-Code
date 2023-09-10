@@ -6,10 +6,16 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+thiserror = "1.0.44"
 serde = { version = "1.0", features = ["serde_derive"] }
 serde_json = "1.0"
-reqwest = { version = "0.11", features = ["json", "blocking"] } # reqwest with JSON parsing support
-thiserror = "1.0.44"
+reqwest = { version = "0.11", features = ["json"] }
 anyhow = "1.0.72"
 chrono = { version = "0.4", features = ["serde"] }
 diesel = { workspace = true, features = ["postgres"] }
+async-trait = "0.1.73"
+
+# todo: define a feature
+[features]
+default = []
+blocking = ["reqwest/blocking"]
