@@ -24,7 +24,10 @@ pub fn cluster_earthquake_events(
     k: usize, // Number of clusters
 ) -> Result<Vec<EarthquakeCluster>, Error> {
     // Extract coordinates (lon, lat) from the earthquake events
-    let coordinates: Vec<(f64, f64)> = events.iter().map(|event| (event.lon, event.lat)).collect();
+    let coordinates: Vec<(f64, f64)> = events
+        .iter()
+        .map(|event| (event.coordinates.lon, event.coordinates.lat))
+        .collect();
 
     // Create a matrix from the coordinates
     let data = Array::from(coordinates);
@@ -65,8 +68,8 @@ pub fn cluster_earthquake_events(
 
 // Function to calculate the centroid of a cluster
 fn calculate_centroid(events: &[EarthquakeEvent]) -> (f64, f64) {
-    let total_lat: f64 = events.iter().map(|event| event.lat).sum();
-    let total_lon: f64 = events.iter().map(|event| event.lon).sum();
+    let total_lat: f64 = events.iter().map(|event| event.coordinates.lat).sum();
+    let total_lon: f64 = events.iter().map(|event| event.coordinates.lon).sum();
     let count = events.len() as f64;
 
     (total_lon / count, total_lat / count)

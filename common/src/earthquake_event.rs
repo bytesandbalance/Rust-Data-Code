@@ -83,9 +83,15 @@ pub struct EarthquakeEvent {
     pub time: u64,
     pub updated: u64,
     pub tsunami: i32,
-    pub coordinates: Vec<f64>,
+    pub coordinates: Coordinates<f64>,
     pub mag_type: String,
     pub event_type: String,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct Coordinates<T> {
+    pub lat: T,
+    pub lon: T,
 }
 
 // GeoJSON data structure to deserialize the response
@@ -138,5 +144,5 @@ pub struct Properties {
 pub struct Geometry {
     #[serde(rename = "type")]
     type_: String,
-    coordinates: Vec<f64>,
+    coordinates: Coordinates<f64>,
 }
