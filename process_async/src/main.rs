@@ -10,7 +10,7 @@ use statistics::{calculate_all_cluster_statistics_async, ClusterStatistics};
 #[tokio::main]
 async fn main() -> Result<(), anyhow::Error> {
     // Define the start date as ten years ago from today
-    let end_date = chrono::Utc::today().naive_utc();
+    let end_date = chrono::Utc::now().naive_utc();
     let start_date = end_date - chrono::Duration::days(365 * 10);
 
     // Create a date iterator to fetch data monthly
