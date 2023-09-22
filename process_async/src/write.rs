@@ -1,4 +1,5 @@
 use arrow::datatypes::{DataType, Field, Schema, SchemaRef};
+use arrow::error::ArrowError;
 use arrow::record_batch::RecordBatch;
 use clustering::ClusterStatistics;
 use datafusion::arrow::array::{ArrayRef, Float64Array, Int64Array};
@@ -6,21 +7,19 @@ use datafusion::arrow::datatypes::ArrowNativeType;
 use datafusion::datasource::MemTable;
 use parquet::arrow::ArrowWriter;
 use parquet::file::writer::{FileWriter, FileWriterOptions};
-use std::collections::HashMap;
 use std::fs::File;
-use std::io::Result;
 use std::sync::Arc;
 
 // Function to write ClusterStatistics to a Parquet file
 pub fn write_cluster_statistics_to_parquet(
     cluster_statistics: Vec<ClusterStatistics>,
     output_file: &str,
-) -> Result<()> {
+) -> std::io::Result<()> {
     // Create a DataFusion Schema for the Parquet file
     let schema = create_parquet_schema();
 
     // Convert ClusterStatistics to RecordBatch
-    let record_batch = create_record_batch(&cluster_statistics, &schema);
+    let record_batch = create_record_batch(&cluster_statistics, &schema)?;
 
     // Create a MemTable from the RecordBatch
     let mem_table = MemTable::try_new(schema.clone(), vec![Arc::new(record_batch)])?;
@@ -140,5 +139,5 @@ fn create_record_batch(
     ];
 
     // Create a RecordBatch from the arrays
-    RecordBatch::try_new(Arc::clone(schema), arrays).expect("Failed to create RecordBatch")
+    RecordBatch::try_new(Arc::clone(schema), arrays)
 }
