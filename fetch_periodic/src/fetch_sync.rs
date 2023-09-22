@@ -1,5 +1,5 @@
 use chrono::Utc;
-use common::earthquake_event::*;
+use common::blocking::earthquake_event::*;
 use common::utils::format_time;
 use std::thread;
 use std::time::Duration;

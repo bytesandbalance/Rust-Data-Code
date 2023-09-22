@@ -1,6 +1,6 @@
 [workspace]
 
-members = ["fetch", "periodic_fetch", "store_diesel", "common"]
+members = ["fetch", "fetch_periodic", "store_diesel", "common", "process_async"]
 resolver = "2"
 
 [workspace.dependencies]

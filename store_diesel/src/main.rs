@@ -1,5 +1,4 @@
-pub mod fetch;
-use self::fetch::run_fetch;
+use common::blocking::fetch::run_fetch;
 use store_diesel::{convert_to_model, establish_connection, insert_earthquake_events};
 
 fn main() -> anyhow::Result<()> {

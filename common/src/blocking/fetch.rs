@@ -1,4 +1,4 @@
-use common::earthquake_event::*;
+use super::earthquake_event::*;
 
 pub fn run_fetch(
     start_time: &str,

@@ -1,6 +1,6 @@
 pub mod fetch;
 use dotenvy::dotenv;
-use fetch::run_fetch;
+use common::fetch::run_fetch;
 use sqlx::postgres::PgPoolOptions;
 use std::env;
 use store_sqlx::{convert_to_model, insert_earthquake_events, EarthquakeEventModel};
