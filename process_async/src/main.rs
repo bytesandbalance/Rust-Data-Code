@@ -40,11 +40,11 @@ async fn main() -> Result<(), anyhow::Error> {
     let k = 10; // Adjust as needed
 
     // Cluster the earthquake events
-    let clusters = cluster_earthquake_events(all_earthquake_events.clone(), k)?;
+    let clusters = cluster_earthquake_events(all_earthquake_events, k)?;
 
     // Calculate statistics for each cluster asynchronously
     let cluster_statistics: Vec<ClusterStatistics> =
-        calculate_all_cluster_statistics_async(clusters.clone()).await;
+        calculate_all_cluster_statistics_async(clusters).await;
 
     write::write_cluster_statistics_to_parquet(cluster_statistics, "output.parquet")?;
 
