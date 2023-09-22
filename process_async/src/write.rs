@@ -44,7 +44,7 @@ pub fn write_cluster_statistics_to_parquet(
     // Create Parquet writer options
     let options = FileWriterOptions {
         write_statistics: true,
-        compression: parquet::basic::Compression::Snappy,
+        compression: parquet::basic::Compression::SNAPPY,
         ..Default::default()
     };
 
