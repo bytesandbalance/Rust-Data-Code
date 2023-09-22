@@ -5,16 +5,33 @@ use clustering::ClusterStatistics;
 use datafusion::arrow::array::{ArrayRef, Float64Array, Int64Array};
 use datafusion::arrow::datatypes::ArrowNativeType;
 use datafusion::datasource::MemTable;
+use datafusion::error::DataFusionError;
 use parquet::arrow::ArrowWriter;
+use parquet::errors::ParquetError;
 use parquet::file::writer::{FileWriter, FileWriterOptions};
 use std::fs::File;
 use std::sync::Arc;
+
+#[derive(Debug, thiserror::Error)]
+pub enum Error {
+    #[error(transparent)]
+    Io(#[from] std::io::Error),
+
+    #[error(transparent)]
+    Arrow(#[from] ArrowError),
+
+    #[error(transparent)]
+    Parquet(#[from] ParquetError),
+
+    #[error(transparent)]
+    DataFusion(#[from] DataFusionError),
+}
 
 // Function to write ClusterStatistics to a Parquet file
 pub fn write_cluster_statistics_to_parquet(
     cluster_statistics: Vec<ClusterStatistics>,
     output_file: &str,
-) -> std::io::Result<()> {
+) -> Result<(), Error> {
     // Create a DataFusion Schema for the Parquet file
     let schema = create_parquet_schema();
 
