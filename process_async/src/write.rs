@@ -90,7 +90,7 @@ fn create_parquet_schema() -> SchemaRef {
 fn create_record_batch(
     cluster_statistics: &Vec<ClusterStatistics>,
     schema: &SchemaRef,
-) -> RecordBatch {
+) -> Result<RecordBatch, ArrowError> {
     // Create arrays for each field
     let cluster_id_array: ArrayRef = Arc::new(Int64Array::from(
         cluster_statistics
@@ -116,30 +116,28 @@ fn create_record_batch(
     ));
 
     // Create a HashMap for the arrays
-    let arrays: HashMap<&str, ArrayRef> = vec![
-        ("cluster_id", cluster_id_array),
-        ("centroid_lon", centroid_lon_array),
-        ("centroid_lat", centroid_lat_array),
-        ("depth_min", depth_min_array),
-        ("depth_max", depth_max_array),
-        ("depth_avg", depth_avg_array),
-        ("depth_count", depth_count_array),
-        ("depth_std", depth_std_array),
-        ("depth_skewness", depth_skewness_array),
-        ("depth_kurtosis", depth_kurtosis_array),
-        ("depth_quantiles", depth_quantiles_array),
-        ("magnitude_min", magnitude_min_array),
-        ("magnitude_max", magnitude_max_array),
-        ("magnitude_avg", magnitude_avg_array),
-        ("magnitude_count", magnitude_count_array),
-        ("magnitude_std", magnitude_std_array),
-        ("magnitude_skewness", magnitude_skewness_array),
-        ("magnitude_kurtosis", magnitude_kurtosis_array),
-        ("magnitude_quantiles", magnitude_quantiles_array),
-        ("duration", duration_array), // Add the duration field
-    ]
-    .into_iter()
-    .collect();
+    let arrays: Vec<ArrayRef> = vec![
+        cluster_id_array,
+        // ("centroid_lon", centroid_lon_array),
+        // ("centroid_lat", centroid_lat_array),
+        // ("depth_min", depth_min_array),
+        // ("depth_max", depth_max_array),
+        // ("depth_avg", depth_avg_array),
+        // ("depth_count", depth_count_array),
+        // ("depth_std", depth_std_array),
+        // ("depth_skewness", depth_skewness_array),
+        // ("depth_kurtosis", depth_kurtosis_array),
+        // ("depth_quantiles", depth_quantiles_array),
+        // ("magnitude_min", magnitude_min_array),
+        // ("magnitude_max", magnitude_max_array),
+        // ("magnitude_avg", magnitude_avg_array),
+        // ("magnitude_count", magnitude_count_array),
+        // ("magnitude_std", magnitude_std_array),
+        // ("magnitude_skewness", magnitude_skewness_array),
+        // ("magnitude_kurtosis", magnitude_kurtosis_array),
+        // ("magnitude_quantiles", magnitude_quantiles_array),
+        duration_array,
+    ];
 
     // Create a RecordBatch from the arrays
     RecordBatch::try_new(Arc::clone(schema), arrays).expect("Failed to create RecordBatch")
