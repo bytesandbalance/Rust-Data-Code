@@ -112,6 +112,7 @@ pub struct Feature {
 
 // Define the Properties struct with all the fields
 #[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct Properties {
     mag: f64,
     place: String,
@@ -136,16 +137,15 @@ pub struct Properties {
     dmin: Option<f64>,
     rms: Option<f64>,
     gap: Option<f64>,
-    #[serde(rename = "magType")]
     mag_type: String,
-    #[serde(rename = "type")]
+    #[serde(alias = "type")]
     event_type: String,
     title: String,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Geometry {
-    #[serde(rename = "type")]
-    type_: String,
+    #[serde(alias = "type")]
+    geometry_type: String,
     coordinates: Coordinates<f64>,
 }
