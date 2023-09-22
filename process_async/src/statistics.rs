@@ -98,7 +98,7 @@ pub async fn calculate_cluster_statistics_async(
     let magnitude_data: Float64Array = cluster
         .events
         .iter()
-        .map(|event| event.magnitude)
+        .map(|event| event.mag)
         .collect::<Vec<f64>>()
         .into();
 
