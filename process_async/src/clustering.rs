@@ -49,10 +49,10 @@ pub fn cluster_earthquake_events(
             // Calculate centroids
             let mut earthquake_clusters: Vec<EarthquakeCluster> = Vec::new();
 
-            for (cluster_idx, cluster_events) in clusters.iter() {
-                let centroid = calculate_centroid(cluster_events);
+            for (_, &cluster_events) in clusters.iter() {
+                let centroid = calculate_centroid(cluster_events.as_ref());
                 earthquake_clusters.push(EarthquakeCluster {
-                    events: cluster_events.clone(),
+                    events: cluster_events,
                     centroid,
                 });
             }
