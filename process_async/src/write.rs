@@ -76,11 +76,7 @@ fn create_parquet_schema() -> SchemaRef {
         Field::new("depth_kurtosis", DataType::Float64, false),
         Field::new(
             "depth_quantiles",
-            DataType::Dictionary(
-                Box::new(DataType::Float64),
-                Box::new(DataType::Float64),
-                false,
-            ),
+            DataType::Dictionary(Box::new(DataType::Float64), Box::new(DataType::Float64)),
             false,
         ),
         Field::new("magnitude_min", DataType::Float64, false),
@@ -92,11 +88,7 @@ fn create_parquet_schema() -> SchemaRef {
         Field::new("magnitude_kurtosis", DataType::Float64, false),
         Field::new(
             "magnitude_quantiles",
-            DataType::Dictionary(
-                Box::new(DataType::Float64),
-                Box::new(DataType::Float64),
-                false,
-            ),
+            DataType::Dictionary(Box::new(DataType::Float64), Box::new(DataType::Float64)),
             false,
         ),
         Field::new("duration", DataType::Int64, false), // Add the duration field
