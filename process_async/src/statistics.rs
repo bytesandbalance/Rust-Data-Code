@@ -91,7 +91,7 @@ pub async fn calculate_cluster_statistics_async(
     let depth_data: Float64Array = cluster
         .events
         .iter()
-        .map(|event| event.depth)
+        .map(|event| event.coordinates.depth)
         .collect::<Vec<f64>>()
         .into();
 

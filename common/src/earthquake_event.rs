@@ -55,7 +55,6 @@ impl EarthquakeDataSource for UsgsDataSource {
                         coordinates: feature.geometry.coordinates,
                         mag_type: feature.properties.mag_type,
                         event_type: feature.properties.event_type,
-                        depth: feature.properties.dmin,
                     })
                     .collect();
                 Ok(earthquake_events)
@@ -88,13 +87,13 @@ pub struct EarthquakeEvent {
     pub coordinates: Coordinates<f64>,
     pub mag_type: String,
     pub event_type: String,
-    pub depth: Option<f64>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Coordinates<T> {
     pub lat: T,
     pub lon: T,
+    pub depth: T,
 }
 
 // GeoJSON data structure to deserialize the response
