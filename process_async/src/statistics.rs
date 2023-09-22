@@ -12,11 +12,9 @@ pub async fn calculate_time_since_last_significant_earthquake(
     let mut most_recent_timestamp: Option<NaiveDateTime> = None;
 
     for earthquake in &cluster.events {
-        if earthquake.magnitude > 5.0 {
-            if most_recent_timestamp.is_none()
-                || earthquake.timestamp > most_recent_timestamp.unwrap()
-            {
-                most_recent_timestamp = Some(earthquake.timestamp);
+        if earthquake.mag > 5.0 {
+            if most_recent_timestamp.is_none() || earthquake.time > most_recent_timestamp.unwrap() {
+                most_recent_timestamp = Some(earthquake.time);
             }
         }
     }

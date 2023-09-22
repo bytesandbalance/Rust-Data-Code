@@ -80,7 +80,7 @@ pub struct UsgsDataSource;
 pub struct EarthquakeEvent {
     pub mag: f64,
     pub place: String,
-    pub time: i64,
+    pub time: i64, // ! Should this be NativeDate??? statistics.rs:calculate_time_since_last_significant_earthquake expects it to be
     pub updated: i64,
     pub tsunami: i32,
     pub coordinates: Vec<f64>,
