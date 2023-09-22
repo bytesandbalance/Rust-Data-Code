@@ -1,4 +1,5 @@
 use async_trait::async_trait;
+use chrono::NaiveDateTime;
 // Define a trait for earthquake data sources
 use serde::{Deserialize, Serialize}; // Import serde traits for serialization/deserialization
 
@@ -80,8 +81,8 @@ pub struct UsgsDataSource;
 pub struct EarthquakeEvent {
     pub mag: f64,
     pub place: String,
-    pub time: u64,
-    pub updated: u64,
+    pub time: NaiveDateTime,
+    pub updated: NaiveDateTime,
     pub tsunami: i32,
     pub coordinates: Coordinates<f64>,
     pub mag_type: String,
@@ -112,8 +113,8 @@ pub struct Feature {
 pub struct Properties {
     mag: f64,
     place: String,
-    time: u64,
-    updated: u64,
+    time: NaiveDateTime,
+    updated: NaiveDateTime,
     tz: Option<String>,
     url: String,
     detail: String,
