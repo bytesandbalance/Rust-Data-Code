@@ -39,7 +39,7 @@ pub fn write_cluster_statistics_to_parquet(
     let record_batch = create_record_batch(&cluster_statistics, &schema)?;
 
     // Create a MemTable from the RecordBatch
-    let mem_table = MemTable::try_new(schema.clone(), vec![Arc::new(record_batch)])?;
+    let mem_table = MemTable::try_new(schema.clone(), vec![vec![record_batch]])?;
 
     // Create Parquet writer options
     let options = FileWriterOptions {
