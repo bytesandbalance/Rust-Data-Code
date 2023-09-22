@@ -27,7 +27,7 @@ async fn main() -> Result<(), anyhow::Error> {
         println!("Fetching data for Start: {} End: {}", start_time, end_time);
 
         // Fetch data asynchronously for the current month
-        let earthquake_events = run_fetch(&start_time, &end_time, min_magnitude).await?;
+        let earthquake_events = run_fetch(&start_time, &end_time, min_magnitude).await?; // because of ? here, what was a &'static str didn't line up with what is the Err variant type main's return type
 
         // Append the fetched earthquake events to the list
         all_earthquake_events.extend(earthquake_events);

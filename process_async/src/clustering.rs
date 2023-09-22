@@ -3,6 +3,12 @@ use ndarray::{Array, Array2};
 use rusty_machine::linalg::Matrix;
 use std::collections::HashMap;
 
+#[derive(Debug, thiserror::Error)]
+pub enum Error {
+    #[error("Clustering Failed")]
+    ClusteringFailed,
+}
+
 // Import your EarthquakeEvent struct and other necessary modules here
 
 // Define a struct to represent a cluster of earthquake events
@@ -16,7 +22,7 @@ pub struct EarthquakeCluster {
 pub fn cluster_earthquake_events(
     events: Vec<EarthquakeEvent>,
     k: usize, // Number of clusters
-) -> Result<Vec<EarthquakeCluster>, &'static str> {
+) -> Result<Vec<EarthquakeCluster>, Error> {
     // Extract coordinates (lon, lat) from the earthquake events
     let coordinates: Vec<(f64, f64)> = events.iter().map(|event| (event.lon, event.lat)).collect();
 
@@ -53,7 +59,7 @@ pub fn cluster_earthquake_events(
 
             Ok(earthquake_clusters)
         }
-        Err(_) => Err("Clustering failed."),
+        Err(_) => Err(Error::ClusteringFailed),
     }
 }
 
