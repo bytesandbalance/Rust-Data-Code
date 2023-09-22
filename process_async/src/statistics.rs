@@ -1,6 +1,6 @@
+use crate::clustering::EarthquakeCluster;
 use arrow::array::Float64Array;
 use chrono::{Duration, NaiveDateTime};
-use clustering::EarthquakeCluster;
 use std::collections::HashMap;
 use tokio::task;
 
