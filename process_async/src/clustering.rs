@@ -31,7 +31,7 @@ pub fn cluster_earthquake_events(
 
     // Create a matrix from the coordinates
     let data = Array::from(coordinates);
-    let matrix = Matrix::new(k, data);
+    let matrix = Matrix::new(k, data, events);
 
     // Perform K-means clustering
     let kmeans = KMeans::new(&matrix, k);
