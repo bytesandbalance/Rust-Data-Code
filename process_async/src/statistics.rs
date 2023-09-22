@@ -115,7 +115,7 @@ pub async fn calculate_all_cluster_statistics_async(
     clusters: Vec<EarthquakeCluster>,
 ) -> Vec<ClusterStatistics> {
     let tasks = clusters.into_iter().map(|cluster| {
-        let cluster_id = cluster.cluster_id;
+        // let cluster_id = cluster.cluster_id;
         let centroid = cluster.centroid;
 
         // Calculate time since last significant earthquake for the cluster
@@ -128,7 +128,7 @@ pub async fn calculate_all_cluster_statistics_async(
             let duration = duration_task.await;
 
             ClusterStatistics {
-                cluster_id,
+                //    cluster_id,
                 centroid,
                 depth_stats,
                 magnitude_stats,
@@ -144,7 +144,7 @@ pub async fn calculate_all_cluster_statistics_async(
 // Define the ClusterStatistics struct to hold statistics for each cluster
 
 pub struct ClusterStatistics {
-    pub cluster_id: usize,
+    // pub cluster_id: usize,
     pub centroid: (f64, f64),
     pub depth_stats: MetricStatistics,
     pub magnitude_stats: MetricStatistics,
