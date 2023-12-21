@@ -77,7 +77,7 @@ pub enum Errors {
 pub struct UsgsDataSource;
 
 // Data structure to hold earthquake event information
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct EarthquakeEvent {
     pub mag: f64,
     pub place: String,
@@ -89,7 +89,7 @@ pub struct EarthquakeEvent {
     pub event_type: String,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Coordinates<T> {
     pub lat: T,
     pub lon: T,

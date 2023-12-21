@@ -1,8 +1,9 @@
 use crate::clustering::EarthquakeCluster;
-use arrow::array::Float64Array;
 use chrono::{Duration, NaiveDateTime};
+use futures::future::*;
 use std::collections::HashMap;
-use tokio::task;
+use polars::prelude::*;
+
 
 // Function to calculate time since the last earthquake with magnitude greater than 5 for an individual cluster
 pub async fn calculate_time_since_last_significant_earthquake(
@@ -29,6 +30,7 @@ pub async fn calculate_time_since_last_significant_earthquake(
 }
 
 // Define a struct to hold statistics for a single metric (depth, magnitude, or energy)
+#[derive(Clone)]
 pub struct MetricStatistics {
     pub min: f64,
     pub max: f64,
@@ -41,15 +43,15 @@ pub struct MetricStatistics {
 }
 
 // Function to calculate statistics for a single metric using DataFusion
-async fn calculate_metric_statistics_async(metric_data: &Float64Array) -> MetricStatistics {
+async fn calculate_metric_statistics_async(metric_data: &Vec<f64>) -> MetricStatistics {
     // Dereference metric_data to access the underlying data
     let metric_data = *metric_data;
 
-    let min = metric_data.min().unwrap_or(0.0);
-    let max = metric_data.max().unwrap_or(0.0);
-    let avg = metric_data.mean().unwrap_or(0.0);
+    let min = metric_data.iter().cloned().fold(f64::INFINITY, f64::min);
+    let max = metric_data.iter().cloned().fold(f64::INFINITY, f64::max);
+    let avg = metric_data.iter().cloned().fold(f64::INFINITY, f64::);
     let count = metric_data.len();
-    let std = metric_data.stddev().unwrap_or(0.0);
+    let std = iter().cloned().fold(f64::INFINITY, f64::stddev);
     let skewness = metric_data.skewness().unwrap_or(0.0);
     let kurtosis = metric_data.kurtosis().unwrap_or(0.0);
 
@@ -74,8 +76,8 @@ async fn calculate_metric_statistics_async(metric_data: &Float64Array) -> Metric
 
 // Function to calculate statistics for depth and magnitude separately
 pub async fn calculate_statistics_async(
-    depth_data: &Float64Array,
-    magnitude_data: &Float64Array,
+    depth_data: &Vec<f64>,
+    magnitude_data: &Vec<f64>,
 ) -> (MetricStatistics, MetricStatistics) {
     let depth_stats = calculate_metric_statistics_async(depth_data).await;
     let magnitude_stats = calculate_metric_statistics_async(magnitude_data).await;
@@ -88,14 +90,14 @@ pub async fn calculate_cluster_statistics_async(
     cluster: &EarthquakeCluster,
 ) -> (MetricStatistics, MetricStatistics) {
     // Extract depth and magnitude data from the cluster's EarthquakeEvent instances
-    let depth_data: Float64Array = cluster
+    let depth_data: Vec<f64> = cluster
         .events
         .iter()
         .map(|event| event.coordinates.depth)
         .collect::<Vec<f64>>()
         .into();
 
-    let magnitude_data: Float64Array = cluster
+    let magnitude_data: Vec<f64> = cluster
         .events
         .iter()
         .map(|event| event.mag)
@@ -121,7 +123,7 @@ pub async fn calculate_all_cluster_statistics_async(
         // Calculate time since last significant earthquake for the cluster
         let duration_task = calculate_time_since_last_significant_earthquake(&cluster);
 
-        task::spawn(async move {
+        tokio::spawn(async move {
             let (depth_stats, magnitude_stats) = calculate_cluster_statistics_async(&cluster).await;
 
             // Wait for the duration calculation to complete
@@ -137,7 +139,7 @@ pub async fn calculate_all_cluster_statistics_async(
         })
     });
 
-    let results = tokio::join_all(tasks).await;
+    let results = join_all(tasks).await;
     results.into_iter().map(|res| res.unwrap()).collect()
 }
 
@@ -149,4 +151,36 @@ pub struct ClusterStatistics {
     pub depth_stats: MetricStatistics,
     pub magnitude_stats: MetricStatistics,
     pub duration: Option<Duration>, // Time since last significant earthquake
+}
+
+enum Statistic {
+    Min,
+    Max,
+    Kurtosis,
+    Skewness,
+}
+
+fn calculate_statistic(statistic: Statistic, data: &[f64]) -> Option<f64> {
+    let s = Series::new("", data);
+
+    match statistic {
+        Statistic::Min => {
+            let min_val: Option<f64> = s.min()?;
+            Some(min_val.get_f64())
+        }
+        Statistic::Max => {
+            let max_val = s.max()?;
+            Some(max_val.get_f64())
+        }
+        Statistic::Kurtosis => {
+            let std_dev = s.kurtosis(true, true)?;
+            Some(std_dev.get_f64())
+        }
+        Statistic::Skewness => {
+            let skewness = s.std()?;
+            Some(skewness.get_f64())
+
+        }
+        // Add other statistics with corresponding calculations
+    }
 }

@@ -1,6 +1,13 @@
 [workspace]
 
-members = ["fetch", "fetch_periodic", "store_diesel", "common", "process_async"]
+members = [
+    "fetch",
+    "fetch_periodic",
+    "store_diesel",
+    "store_sqlx",
+    "common",
+    "minmax",
+]
 resolver = "2"
 
 [workspace.dependencies]

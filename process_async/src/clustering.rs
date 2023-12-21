@@ -1,69 +1,100 @@
 use common::earthquake_event::EarthquakeEvent;
-use ndarray::{Array, Array2};
-use rusty_machine::linalg::Matrix;
-use std::collections::HashMap;
+use linfa::traits::{Fit, Predict};
+use linfa::DatasetBase;
+use linfa_clustering::KMeans;
+use ndarray::Array2;
+use ndarray_rand::rand::SeedableRng;
+use rand_xoshiro::Xoshiro256Plus;
 
 #[derive(Debug, thiserror::Error)]
 pub enum Error {
     #[error("Clustering Failed")]
     ClusteringFailed,
 }
-
-// Import your EarthquakeEvent struct and other necessary modules here
-
+ 
 // Define a struct to represent a cluster of earthquake events
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct EarthquakeCluster {
     pub events: Vec<EarthquakeEvent>,
     pub centroid: (f64, f64), // (lon, lat) coordinates of the cluster centroid
 }
 
+// Function to convert EarthquakeEvents to Linfa observations
+pub fn convert_to_linfa_observations(events: &[EarthquakeEvent]) -> Vec<[f64; 2]> {
+    events
+        .iter()
+        .map(|event| [event.coordinates.lon, event.coordinates.lat])
+        .collect()
+}
+
 // Function to perform K-means clustering on earthquake events
 pub fn cluster_earthquake_events(
     events: Vec<EarthquakeEvent>,
-    k: usize, // Number of clusters
+    n_clusters: usize, // Number of clusters
 ) -> Result<Vec<EarthquakeCluster>, Error> {
-    // Extract coordinates (lon, lat) from the earthquake events
-    let coordinates: Vec<(f64, f64)> = events
-        .iter()
-        .map(|event| (event.coordinates.lon, event.coordinates.lat))
-        .collect();
+    // Convert EarthquakeEvents to Linfa observations
+    let observations: Vec<[f64; 2]> = convert_to_linfa_observations(&events);
 
-    // Create a matrix from the coordinates
-    let data = Array::from(coordinates);
-    let matrix = Matrix::new(k, data, events);
-
-    // Perform K-means clustering
-    let kmeans = KMeans::new(&matrix, k);
-    let results = kmeans.train(&matrix);
-
-    match results {
-        Ok(model) => {
-            let labels = model.labels();
-
-            // Organize clustered events
-            let mut clusters: HashMap<usize, Vec<EarthquakeEvent>> = HashMap::new();
-
-            for (event_idx, cluster_idx) in labels.iter().enumerate() {
-                let cluster = clusters.entry(*cluster_idx).or_insert(Vec::new());
-                cluster.push(events[event_idx].clone());
-            }
-
-            // Calculate centroids
-            let mut earthquake_clusters: Vec<EarthquakeCluster> = Vec::new();
-
-            for (_, &cluster_events) in clusters.iter() {
-                let centroid = calculate_centroid(cluster_events.as_ref());
-                earthquake_clusters.push(EarthquakeCluster {
-                    events: cluster_events,
-                    centroid,
-                });
-            }
-
-            Ok(earthquake_clusters)
-        }
-        Err(_) => Err(Error::ClusteringFailed),
+    // Convert Vec<[f64; 2]> to ndarray::Array2<f64>
+    let mut data_array = Array2::zeros((observations.len(), 2));
+    for (i, point) in observations.iter().enumerate() {
+        data_array[[i, 0]] = point[0];
+        data_array[[i, 1]] = point[1];
     }
+    let observations = DatasetBase::from(data_array);
+
+    // Our random number generator, seeded for reproducibility
+    let seed = 42;
+    let mut rng = Xoshiro256Plus::seed_from_u64(seed);
+
+    // Configure and run the K-means algorithm
+    let model = KMeans::params_with_rng(n_clusters, rng.clone())
+        .tolerance(1e-2)
+        .fit(&observations)
+        .expect("KMeans fitted");
+
+    // Get cluster assignments for each data point
+    let cluster_assignments = model
+        .predict(observations)
+        .targets()
+        .iter()
+        .map(|&cluster_idx| cluster_idx as usize)
+        .collect::<Vec<usize>>();
+
+    // Initialize EarthquakeCluster instances
+    let mut clusters: Vec<EarthquakeCluster> = vec![
+        EarthquakeCluster {
+            events: Vec::new(),
+            centroid: (0.0, 0.0),
+        };
+        n_clusters
+    ];
+
+    // Assign earthquake events to their respective clusters
+    for (event, cluster_idx) in events.into_iter().zip(cluster_assignments) {
+        clusters[cluster_idx].events.push(event);
+    }
+
+    // Calculate centroids for each cluster
+    for cluster in &mut clusters {
+        let sum_lon: f64 = cluster
+            .events
+            .iter()
+            .map(|event| event.coordinates.lon)
+            .sum();
+        let sum_lat: f64 = cluster
+            .events
+            .iter()
+            .map(|event| event.coordinates.lat)
+            .sum();
+        let count = cluster.events.len() as f64;
+
+        if count > 0.0 {
+            cluster.centroid = (sum_lon / count, sum_lat / count);
+        }
+    }
+
+    Ok(clusters)
 }
 
 // Function to calculate the centroid of a cluster
