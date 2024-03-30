@@ -78,7 +78,7 @@ pub struct UsgsDataSource;
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct EarthquakeEvent {
     pub mag: f64,
-    pub place: String,
+    pub place: Option<String>,
     pub time: i64,
     pub updated: i64,
     pub tsunami: i32,
@@ -112,7 +112,7 @@ pub struct Feature {
 #[serde(rename_all = "camelCase")]
 pub struct Properties {
     mag: f64,
-    place: String,
+    place: Option<String>,
     time: i64,
     updated: i64,
     tz: Option<String>,
