@@ -11,7 +11,7 @@ use std::error::Error;
 async fn main() -> Result<(), Box<dyn Error>> {
     // Define the start date as ten years ago from today
     let end_date = chrono::Utc::now().date_naive();
-    let start_date = end_date - chrono::Duration::days(30);
+    let start_date = end_date - chrono::Duration::days(5*365);
 
     // Create a date iterator to fetch data monthly
     let mut current_date = start_date.clone();
@@ -46,7 +46,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
     }
 
     // Set the number of clusters for k-means clustering
-    let k = 10; // Adjust as needed
+    let k = 20; // Adjust as needed
 
     // Cluster the earthquake events
     let clusters = cluster_earthquake_events(all_earthquake_events, k)?;
