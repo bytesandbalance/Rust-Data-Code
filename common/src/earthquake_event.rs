@@ -1,6 +1,4 @@
 use async_trait::async_trait;
-use chrono::NaiveDateTime;
-// Define a trait for earthquake data sources
 use serde::{Deserialize, Serialize}; // Import serde traits for serialization/deserialization
 
 #[async_trait]
@@ -46,7 +44,7 @@ impl EarthquakeDataSource for UsgsDataSource {
                 let earthquake_events: Vec<EarthquakeEvent> = earthquake_data
                     .features
                     .into_iter()
-                    .map(|feature| EarthquakeEvent {
+                    .map(|feature: Feature| EarthquakeEvent {
                         mag: feature.properties.mag,
                         place: feature.properties.place,
                         time: feature.properties.time,
@@ -80,9 +78,9 @@ pub struct UsgsDataSource;
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct EarthquakeEvent {
     pub mag: f64,
-    pub place: String,
-    pub time: NaiveDateTime,
-    pub updated: NaiveDateTime,
+    pub place: Option<String>,
+    pub time: i64,
+    pub updated: i64,
     pub tsunami: i32,
     pub coordinates: Coordinates<f64>,
     pub mag_type: String,
@@ -114,9 +112,9 @@ pub struct Feature {
 #[serde(rename_all = "camelCase")]
 pub struct Properties {
     mag: f64,
-    place: String,
-    time: NaiveDateTime,
-    updated: NaiveDateTime,
+    place: Option<String>,
+    time: i64,
+    updated: i64,
     tz: Option<String>,
     url: String,
     detail: String,

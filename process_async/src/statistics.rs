@@ -1,9 +1,7 @@
 use crate::clustering::EarthquakeCluster;
 use chrono::{Duration, NaiveDateTime};
-use futures::future::*;
-use std::collections::HashMap;
-use polars::prelude::*;
-
+use std::error::Error;
+use std::fmt;
 
 // Function to calculate time since the last earthquake with magnitude greater than 5 for an individual cluster
 pub async fn calculate_time_since_last_significant_earthquake(
@@ -13,9 +11,12 @@ pub async fn calculate_time_since_last_significant_earthquake(
     let mut most_recent_timestamp: Option<NaiveDateTime> = None;
 
     for earthquake in &cluster.events {
+        let timestamp_secs = earthquake.time / 1000;
+        let earthquake_datetime = NaiveDateTime::from_timestamp_opt(timestamp_secs, 0);
+
         if earthquake.mag > 5.0 {
-            if most_recent_timestamp.is_none() || earthquake.time > most_recent_timestamp.unwrap() {
-                most_recent_timestamp = Some(earthquake.time);
+            if most_recent_timestamp.is_none() || earthquake_datetime > most_recent_timestamp {
+                most_recent_timestamp = earthquake_datetime;
             }
         }
     }
@@ -30,59 +31,27 @@ pub async fn calculate_time_since_last_significant_earthquake(
 }
 
 // Define a struct to hold statistics for a single metric (depth, magnitude, or energy)
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct MetricStatistics {
     pub min: f64,
     pub max: f64,
-    pub avg: f64,
-    pub count: usize,
-    pub std: f64,
-    pub skewness: f64,
-    pub kurtosis: f64,
-    pub quantiles: HashMap<f64, f64>, // Quantile values and their corresponding quantile levels
+    pub avg: f64
 }
 
 // Function to calculate statistics for a single metric using DataFusion
 async fn calculate_metric_statistics_async(metric_data: &Vec<f64>) -> MetricStatistics {
-    // Dereference metric_data to access the underlying data
-    let metric_data = *metric_data;
-
     let min = metric_data.iter().cloned().fold(f64::INFINITY, f64::min);
     let max = metric_data.iter().cloned().fold(f64::INFINITY, f64::max);
-    let avg = metric_data.iter().cloned().fold(f64::INFINITY, f64::);
-    let count = metric_data.len();
-    let std = iter().cloned().fold(f64::INFINITY, f64::stddev);
-    let skewness = metric_data.skewness().unwrap_or(0.0);
-    let kurtosis = metric_data.kurtosis().unwrap_or(0.0);
+    // Calculate the average value
+    let sum: f64 = metric_data.iter().sum();
+    let avg = sum / metric_data.len() as f64;
 
-    // Calculate quantiles (25th, 50th, and 75th percentiles)
-    let quantile_levels = vec![0.25, 0.5, 0.75];
-    let quantile_values = quantile_levels
-        .iter()
-        .map(|&q| (q, metric_data.quantile(q).unwrap_or(0.0)))
-        .collect::<HashMap<_, _>>();
 
     MetricStatistics {
         min,
         max,
-        avg,
-        count,
-        std,
-        skewness,
-        kurtosis,
-        quantiles: quantile_values,
+        avg
     }
-}
-
-// Function to calculate statistics for depth and magnitude separately
-pub async fn calculate_statistics_async(
-    depth_data: &Vec<f64>,
-    magnitude_data: &Vec<f64>,
-) -> (MetricStatistics, MetricStatistics) {
-    let depth_stats = calculate_metric_statistics_async(depth_data).await;
-    let magnitude_stats = calculate_metric_statistics_async(magnitude_data).await;
-
-    (depth_stats, magnitude_stats)
 }
 
 // Function to calculate statistics for a cluster
@@ -112,39 +81,41 @@ pub async fn calculate_cluster_statistics_async(
     (depth_stats, magnitude_stats)
 }
 
-// Function to calculate statistics for all clusters asynchronously
+
 pub async fn calculate_all_cluster_statistics_async(
     clusters: Vec<EarthquakeCluster>,
-) -> Vec<ClusterStatistics> {
+) -> Result<Vec<ClusterStatistics>, Box<dyn Error>> {
     let tasks = clusters.into_iter().map(|cluster| {
-        // let cluster_id = cluster.cluster_id;
-        let centroid = cluster.centroid;
+        let centroid = cluster.centroid.clone(); // Clone centroid
+        let cluster_clone = cluster.clone(); // Clone cluster for async block
 
-        // Calculate time since last significant earthquake for the cluster
-        let duration_task = calculate_time_since_last_significant_earthquake(&cluster);
+        async move {
+            let duration_task = calculate_time_since_last_significant_earthquake(&cluster_clone);
 
-        tokio::spawn(async move {
-            let (depth_stats, magnitude_stats) = calculate_cluster_statistics_async(&cluster).await;
-
-            // Wait for the duration calculation to complete
+            let (depth_stats, magnitude_stats) = calculate_cluster_statistics_async(&cluster_clone).await;
             let duration = duration_task.await;
 
-            ClusterStatistics {
-                //    cluster_id,
+            Ok(ClusterStatistics {
                 centroid,
                 depth_stats,
                 magnitude_stats,
                 duration,
-            }
-        })
+            })
+        }
     });
 
-    let results = join_all(tasks).await;
-    results.into_iter().map(|res| res.unwrap()).collect()
+    // Collect and await all the async tasks
+    let results: Result<Vec<_>, Box<dyn Error>> = futures::future::try_join_all(tasks).await;
+
+    // Handle errors or extract successful results
+    match results {
+        Ok(statistics) => Ok(statistics),
+        Err(err) => Err(err),
+    }
 }
 
-// Define the ClusterStatistics struct to hold statistics for each cluster
 
+// Define the ClusterStatistics struct to hold statistics for each cluster
 pub struct ClusterStatistics {
     // pub cluster_id: usize,
     pub centroid: (f64, f64),
@@ -153,34 +124,16 @@ pub struct ClusterStatistics {
     pub duration: Option<Duration>, // Time since last significant earthquake
 }
 
-enum Statistic {
-    Min,
-    Max,
-    Kurtosis,
-    Skewness,
-}
-
-fn calculate_statistic(statistic: Statistic, data: &[f64]) -> Option<f64> {
-    let s = Series::new("", data);
-
-    match statistic {
-        Statistic::Min => {
-            let min_val: Option<f64> = s.min()?;
-            Some(min_val.get_f64())
-        }
-        Statistic::Max => {
-            let max_val = s.max()?;
-            Some(max_val.get_f64())
-        }
-        Statistic::Kurtosis => {
-            let std_dev = s.kurtosis(true, true)?;
-            Some(std_dev.get_f64())
-        }
-        Statistic::Skewness => {
-            let skewness = s.std()?;
-            Some(skewness.get_f64())
-
-        }
-        // Add other statistics with corresponding calculations
+impl fmt::Display for ClusterStatistics {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(
+            f,
+            "Cluster Statistics:\n\
+            Centroid: {:?}\n\
+            Depth Stats: {:?}\n\
+            Magnitude Stats: {:?}\n\
+            Duration since last significant earthquake: {:?}\n",
+            self.centroid, self.depth_stats, self.magnitude_stats, self.duration
+        )
     }
 }

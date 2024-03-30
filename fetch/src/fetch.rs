@@ -8,7 +8,7 @@ pub fn run_fetch(
     let usgs_data_source = UsgsDataSource;
     let format = "geojson";
 
-    let usgs_earthquake_data = usgs_data_source.fetch_earthquake_data(
+    let usgs_earthquake_data: Result<Vec<EarthquakeEvent>, Errors> = usgs_data_source.fetch_earthquake_data(
         format,
         start_time,
         end_time,

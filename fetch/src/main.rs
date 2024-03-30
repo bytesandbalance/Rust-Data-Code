@@ -1,5 +1,3 @@
-// File: src/main.rs or src/lib.rs
-
 pub mod fetch;
 use fetch::run_fetch; // Import the function
 

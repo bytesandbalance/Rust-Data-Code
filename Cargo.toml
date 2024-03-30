@@ -4,9 +4,8 @@ members = [
     "fetch",
     "fetch_periodic",
     "store_diesel",
-    "store_sqlx",
+    "process_async",
     "common",
-    "minmax",
 ]
 resolver = "2"
 

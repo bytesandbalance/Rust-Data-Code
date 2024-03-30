@@ -11,7 +11,7 @@ pub enum Error {
     #[error("Clustering Failed")]
     ClusteringFailed,
 }
- 
+
 // Define a struct to represent a cluster of earthquake events
 #[derive(Debug, Clone)]
 pub struct EarthquakeCluster {
@@ -45,7 +45,7 @@ pub fn cluster_earthquake_events(
 
     // Our random number generator, seeded for reproducibility
     let seed = 42;
-    let mut rng = Xoshiro256Plus::seed_from_u64(seed);
+    let rng = Xoshiro256Plus::seed_from_u64(seed);
 
     // Configure and run the K-means algorithm
     let model = KMeans::params_with_rng(n_clusters, rng.clone())
@@ -95,13 +95,4 @@ pub fn cluster_earthquake_events(
     }
 
     Ok(clusters)
-}
-
-// Function to calculate the centroid of a cluster
-fn calculate_centroid(events: &[EarthquakeEvent]) -> (f64, f64) {
-    let total_lat: f64 = events.iter().map(|event| event.coordinates.lat).sum();
-    let total_lon: f64 = events.iter().map(|event| event.coordinates.lon).sum();
-    let count = events.len() as f64;
-
-    (total_lon / count, total_lat / count)
 }
