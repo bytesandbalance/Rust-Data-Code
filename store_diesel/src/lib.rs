@@ -38,14 +38,14 @@ pub fn convert_to_model(events: Vec<EarthquakeEvent>) -> Vec<EarthquakeEventMode
 
             EarthquakeEventModel {
                 mag: event.mag,
-                place: event.place.clone(),
+                place: event.place,
                 time: time,
                 updated: updated,
                 tsunami: event.tsunami,
                 lon: event.coordinates[0],
                 lat: event.coordinates[1],
-                mag_type: event.mag_type.clone(),
-                event_type: event.event_type.clone(),
+                mag_type: event.mag_type,
+                event_type: event.event_type,
             }
         })
         .collect()
