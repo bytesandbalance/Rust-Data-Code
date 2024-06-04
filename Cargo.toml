@@ -6,6 +6,7 @@ members = [
     "store_diesel",
     "process_async",
     "common",
+    "process_async_opentelemetry"
 ]
 resolver = "2"
 
