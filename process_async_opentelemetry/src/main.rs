@@ -37,7 +37,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
 
     let tracing_env_filter = EnvFilter::builder()
         // .with_env_var("RUST_LOG")
-        .with_default_directive(LevelFilter::TRACE.into())
+        .with_default_directive(LevelFilter::INFO.into())
         .from_env_lossy();
 
     let telemetry = tracing_opentelemetry::layer()
