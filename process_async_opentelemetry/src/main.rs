@@ -5,7 +5,7 @@ use std::error::Error;
 
 use opentelemetry::{global::shutdown_tracer_provider, KeyValue};
 use opentelemetry_sdk::{trace, Resource};
-use tracing::{instrument, level_filters::LevelFilter, Instrument, Span};
+use tracing::level_filters::LevelFilter;
 use tracing_subscriber::{layer::SubscriberExt, EnvFilter, Layer, Registry};
 
 use clustering::cluster_earthquake_events;
@@ -37,8 +37,12 @@ async fn main() -> Result<(), Box<dyn Error>> {
 
     let tracing_env_filter = EnvFilter::builder()
         // .with_env_var("RUST_LOG")
-        .with_default_directive(LevelFilter::INFO.into())
-        .from_env_lossy();
+        .with_default_directive(LevelFilter::TRACE.into())
+        .from_env_lossy()
+        // We don't want to trace the http2 packets sent by the otlp exporter,
+        // it will result in a trace loop.
+        // See https://github.com/open-telemetry/opentelemetry-rust/issues/761
+        .add_directive("h2=off".parse()?);
 
     let telemetry = tracing_opentelemetry::layer()
         .with_tracer(otlp_tracer)
@@ -57,8 +61,6 @@ async fn main() -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-// Manually record the fields, else we get ugly debug output
-#[instrument(skip_all, fields(end_date, back_until_seconds))]
 async fn process(
     end_date: chrono::DateTime<chrono::Utc>,
     back_until: chrono::Duration,
@@ -66,10 +68,6 @@ async fn process(
     // Define the start date as ten years ago from today
     let end_date = end_date.date_naive();
     let start_date = end_date - back_until;
-
-    Span::current()
-        .record("end_date", format!("{end_date}"))
-        .record("back_until_seconds", back_until.num_seconds() as i64);
 
     // Create a date iterator to fetch data monthly
     let mut current_date = start_date;
@@ -81,17 +79,11 @@ async fn process(
         let end_time = next_2day.to_string();
         let min_magnitude = 3; // Set your desired minimum magnitude here
 
-        tracing::info!("Fetching data");
-
-        // We need get the current span to instrument the async call with.
-        // Otherwise, the spawned task ends up in a separate trace tree.
-        let current_span = Span::current();
+        tracing::info!(start_time, end_time, "Fetching data");
 
         // Spawn asynchronous task for fetching data and push it to the vector
         tasks.push(tokio::spawn(async move {
-            run_fetch(&start_time, &end_time, min_magnitude)
-                .instrument(current_span)
-                .await
+            run_fetch(&start_time, &end_time, min_magnitude).await
         }));
 
         // Move to the next month
