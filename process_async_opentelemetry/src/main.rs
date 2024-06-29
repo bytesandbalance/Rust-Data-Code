@@ -7,18 +7,18 @@ use statistics::calculate_all_cluster_statistics_async;
 use std::error::Error;
 
 use opentelemetry::global::shutdown_tracer_provider;
-use opentelemetry_jaeger::new_agent_pipeline;
 use tracing_subscriber::layer::SubscriberExt;
 use tracing_subscriber::Registry;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {
+    // Change the endpoint via OTEL_EXPORTER_OTLP_ENDPOINT. Default is http://localhost:4317/
+    let otlp_exporter = opentelemetry_otlp::new_exporter().tonic();
 
-    let tracer = new_agent_pipeline()
-        .with_service_name("earthquake_tracing_app")
-        .with_auto_split_batch(true) // Enable auto-splitting
-        .with_max_packet_size(8192) // Specify a max packet size
-        .install_batch(opentelemetry::runtime::Tokio)?;
+    let tracer = opentelemetry_otlp::new_pipeline()
+        .tracing()
+        .with_exporter(otlp_exporter)
+        .install_batch(opentelemetry_sdk::runtime::Tokio)?;
 
     let telemetry = tracing_opentelemetry::layer().with_tracer(tracer);
     let subscriber = Registry::default().with(telemetry);
@@ -26,7 +26,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
 
     // Define the start date as ten years ago from today
     let end_date = chrono::Utc::now().date_naive();
-    let start_date = end_date - chrono::Duration::days(5*365);
+    let start_date = end_date - chrono::Duration::days(5 * 365);
 
     // Create a date iterator to fetch data monthly
     let mut current_date = start_date.clone();
@@ -43,7 +43,10 @@ async fn main() -> Result<(), Box<dyn Error>> {
         let end_time_clone = end_time.clone();
 
         // Log the start and end times being fetched
-        println!("Fetching data for Start: {} End: {}", start_time_clone, end_time_clone);
+        println!(
+            "Fetching data for Start: {} End: {}",
+            start_time_clone, end_time_clone
+        );
 
         // Spawn asynchronous task for fetching data and push it to the vector
         tasks.push(tokio::spawn(async move {
