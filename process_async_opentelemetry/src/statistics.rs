@@ -2,8 +2,10 @@ use crate::clustering::EarthquakeCluster;
 use chrono::{Duration, NaiveDateTime};
 use std::error::Error;
 use std::fmt;
+use tracing::instrument;
 
 // Function to calculate time since the last earthquake with magnitude greater than 5 for an individual cluster
+#[instrument]
 pub async fn calculate_time_since_last_significant_earthquake(
     cluster: &EarthquakeCluster,
 ) -> Option<Duration> {
@@ -35,29 +37,35 @@ pub async fn calculate_time_since_last_significant_earthquake(
 pub struct MetricStatistics {
     pub min: f64,
     pub max: f64,
-    pub avg: f64
+    pub avg: f64,
 }
 
 // Function to calculate statistics for a single metric using DataFusion
+#[instrument]
 async fn calculate_metric_statistics_async(metric_data: &Vec<f64>) -> MetricStatistics {
     // Filter out infinite values before calculating min and max
-    let finite_data: Vec<f64> = metric_data.iter().cloned().filter(|&x| x.is_finite()).collect();
+    let finite_data: Vec<f64> = metric_data
+        .iter()
+        .cloned()
+        .filter(|&x| x.is_finite())
+        .collect();
 
     // Calculate min and max for finite data
     let min = finite_data.iter().cloned().fold(f64::INFINITY, f64::min);
-    let max = finite_data.iter().cloned().fold(f64::NEG_INFINITY, f64::max);
+    let max = finite_data
+        .iter()
+        .cloned()
+        .fold(f64::NEG_INFINITY, f64::max);
 
     // Calculate the average value
     let sum: f64 = finite_data.iter().sum();
     let avg = sum / finite_data.len() as f64;
 
-    MetricStatistics {
-        min,
-        max,
-        avg,
-    }
+    MetricStatistics { min, max, avg }
 }
+
 // Function to calculate statistics for a cluster
+#[instrument]
 pub async fn calculate_cluster_statistics_async(
     cluster: &EarthquakeCluster,
 ) -> (MetricStatistics, MetricStatistics) {
@@ -84,7 +92,7 @@ pub async fn calculate_cluster_statistics_async(
     (depth_stats, magnitude_stats)
 }
 
-
+#[instrument]
 pub async fn calculate_all_cluster_statistics_async(
     clusters: Vec<EarthquakeCluster>,
 ) -> Result<Vec<ClusterStatistics>, Box<dyn Error>> {
@@ -95,7 +103,8 @@ pub async fn calculate_all_cluster_statistics_async(
         async move {
             let duration_task = calculate_time_since_last_significant_earthquake(&cluster_clone);
 
-            let (depth_stats, magnitude_stats) = calculate_cluster_statistics_async(&cluster_clone).await;
+            let (depth_stats, magnitude_stats) =
+                calculate_cluster_statistics_async(&cluster_clone).await;
             let duration = duration_task.await;
 
             Ok(ClusterStatistics {
@@ -116,7 +125,6 @@ pub async fn calculate_all_cluster_statistics_async(
         Err(err) => Err(err),
     }
 }
-
 
 // Define the ClusterStatistics struct to hold statistics for each cluster
 pub struct ClusterStatistics {

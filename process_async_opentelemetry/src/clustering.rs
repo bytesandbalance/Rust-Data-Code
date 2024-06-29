@@ -5,6 +5,7 @@ use linfa_clustering::KMeans;
 use ndarray::Array2;
 use ndarray_rand::rand::SeedableRng;
 use rand_xoshiro::Xoshiro256Plus;
+use tracing::instrument;
 
 #[derive(Debug, thiserror::Error)]
 pub enum Error {
@@ -20,6 +21,7 @@ pub struct EarthquakeCluster {
 }
 
 // Function to convert EarthquakeEvents to Linfa observations
+#[instrument]
 pub fn convert_to_linfa_observations(events: &[EarthquakeEvent]) -> Vec<[f64; 2]> {
     events
         .iter()
@@ -28,6 +30,7 @@ pub fn convert_to_linfa_observations(events: &[EarthquakeEvent]) -> Vec<[f64; 2]
 }
 
 // Function to perform K-means clustering on earthquake events
+#[instrument]
 pub fn cluster_earthquake_events(
     events: Vec<EarthquakeEvent>,
     n_clusters: usize, // Number of clusters
