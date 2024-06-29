@@ -97,7 +97,7 @@ async fn process(
     }
 
     // Set the number of clusters for k-means clustering
-    let k = 20; // Adjust as needed
+    let k = 20; // todo, make this a constant, or function parameter
 
     // Cluster the earthquake events
     let clusters = cluster_earthquake_events(all_earthquake_events, k)?;
