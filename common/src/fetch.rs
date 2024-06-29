@@ -1,5 +1,8 @@
+use tracing::instrument;
+
 use super::earthquake_event::*;
 
+#[instrument]
 pub async fn run_fetch(
     start_time: &str,
     end_time: &str,

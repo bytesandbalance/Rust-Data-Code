@@ -1,5 +1,6 @@
 use async_trait::async_trait;
-use serde::{Deserialize, Serialize}; // Import serde traits for serialization/deserialization
+use serde::{Deserialize, Serialize};
+use tracing::{instrument, Span}; // Import serde traits for serialization/deserialization
 
 #[async_trait]
 pub trait EarthquakeDataSource {
@@ -18,6 +19,7 @@ pub trait EarthquakeDataSource {
 impl EarthquakeDataSource for UsgsDataSource {
     type Error = Errors;
 
+    #[instrument(skip(self), fields(url))]
     async fn fetch_earthquake_data(
         &self,
         format: &str,
@@ -31,7 +33,8 @@ impl EarthquakeDataSource for UsgsDataSource {
             "{}?format={}&starttime={}&endtime={}&minmagnitude={}",
             base_url, format, start_time, end_time, min_magnitude
         );
-        println!("{:?}", url);
+        Span::current().record("url", &url);
+        tracing::info!("Fetching");
 
         // Make the HTTP request to the USGS API
         let response = reqwest::get(&url).await?; // todo: async features: #[cfg(feature = "async")]
