@@ -140,11 +140,13 @@ impl fmt::Display for ClusterStatistics {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(
             f,
-            "Cluster Statistics:\n\
-            Centroid: {:?}\n\
-            Depth Stats: {:?}\n\
-            Magnitude Stats: {:?}\n\
-            Duration since last significant earthquake: {:?}\n",
+            indoc::indoc! {"
+            Cluster Statistics:
+            Centroid: {:?}
+            Depth Stats: {:?}
+            Magnitude Stats: {:?}
+            Duration since last significant earthquake: {:?}"
+            },
             self.centroid, self.depth_stats, self.magnitude_stats, self.duration
         )
     }
