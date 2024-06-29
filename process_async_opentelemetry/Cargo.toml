@@ -30,5 +30,5 @@ opentelemetry = "0.23.0"
 opentelemetry-otlp = "0.16.0"
 tracing = "0.1"
 tracing-opentelemetry = "0.24.0"
-tracing-subscriber = "0.3"
+tracing-subscriber = { version = "0.3.18", features = ["env-filter"] }
 opentelemetry_sdk = { version = "0.23.0", features = ["rt-tokio"] }

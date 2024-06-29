@@ -127,6 +127,7 @@ pub async fn calculate_all_cluster_statistics_async(
 }
 
 // Define the ClusterStatistics struct to hold statistics for each cluster
+#[derive(Debug)]
 pub struct ClusterStatistics {
     // pub cluster_id: usize,
     pub centroid: (f64, f64),
