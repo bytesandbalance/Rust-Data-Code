@@ -5,7 +5,7 @@ use std::fmt;
 use tracing::instrument;
 
 // Function to calculate time since the last earthquake with magnitude greater than 5 for an individual cluster
-#[instrument]
+#[instrument(level = "trace")]
 pub async fn calculate_time_since_last_significant_earthquake(
     cluster: &EarthquakeCluster,
 ) -> Option<Duration> {
@@ -41,7 +41,7 @@ pub struct MetricStatistics {
 }
 
 // Function to calculate statistics for a single metric using DataFusion
-#[instrument]
+#[instrument(level = "trace")]
 async fn calculate_metric_statistics_async(metric_data: &Vec<f64>) -> MetricStatistics {
     // Filter out infinite values before calculating min and max
     let finite_data: Vec<f64> = metric_data
@@ -65,7 +65,7 @@ async fn calculate_metric_statistics_async(metric_data: &Vec<f64>) -> MetricStat
 }
 
 // Function to calculate statistics for a cluster
-#[instrument]
+#[instrument(level = "trace")]
 pub async fn calculate_cluster_statistics_async(
     cluster: &EarthquakeCluster,
 ) -> (MetricStatistics, MetricStatistics) {
@@ -92,7 +92,7 @@ pub async fn calculate_cluster_statistics_async(
     (depth_stats, magnitude_stats)
 }
 
-#[instrument]
+#[instrument(level = "trace")]
 pub async fn calculate_all_cluster_statistics_async(
     clusters: Vec<EarthquakeCluster>,
 ) -> Result<Vec<ClusterStatistics>, Box<dyn Error>> {
