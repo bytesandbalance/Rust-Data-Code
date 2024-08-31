@@ -1,17 +1,19 @@
 pub mod clustering;
 pub mod statistics;
+pub mod temporal;
 
 use clustering::cluster_earthquake_events;
 use common::fetch::run_fetch;
 use statistics::calculate_all_cluster_statistics_async;
+use temporal::{events_to_dataframe, temporal_analysis};
 use std::error::Error;
-
+use tokio;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {
     // Define the start date as ten years ago from today
     let end_date = chrono::Utc::now().date_naive();
-    let start_date = end_date - chrono::Duration::days(5*365);
+    let start_date = end_date - chrono::Duration::days(1*365);
 
     // Create a date iterator to fetch data monthly
     let mut current_date = start_date.clone();
@@ -49,16 +51,23 @@ async fn main() -> Result<(), Box<dyn Error>> {
     let k = 20; // Adjust as needed
 
     // Cluster the earthquake events
-    let clusters = cluster_earthquake_events(all_earthquake_events, k)?;
+    let clusters = cluster_earthquake_events(all_earthquake_events.clone(), k)?;
 
     // Calculate statistics for each cluster asynchronously
-    let clusters_statistics = calculate_all_cluster_statistics_async(clusters).await?;
+    let clusters_statistics = calculate_all_cluster_statistics_async(clusters.clone()).await?;
 
     // Print each ClusterStatistics
-    for cluster_statistic in clusters_statistics {
+    for cluster_statistic in &clusters_statistics {
         println!("{}", cluster_statistic);
     }
 
-    // If the program reaches this point, everything executed successfully
+    // Perform temporal analysis for each cluster
+    for (i, cluster) in clusters.iter().enumerate() {
+        let df = events_to_dataframe(cluster.events.clone())?;
+        let temporal_df = temporal_analysis(&df).await?;
+        println!("Temporal Analysis for Cluster {}:", i);
+        println!("{:?}", temporal_df);
+    }
+
     Ok(())
 }

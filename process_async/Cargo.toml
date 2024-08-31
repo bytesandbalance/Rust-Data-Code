@@ -6,8 +6,6 @@ edition = "2021"
 [dependencies]
 common.path = "../common"
 tokio = { version = "1.32.0", features = ["full"] }
-arrow = "46.0.0"
-datafusion = "31.0.0"
 parquet = "46.0.0"
 rusty-machine = "0.5.4"
 serde.workspace = true
@@ -22,7 +20,7 @@ linfa = "0.6.1"
 ndarray = "0.15.6"
 rand_xoshiro = "0.6.0"
 ndarray-rand = "0.14.0"
-polars = "0.33.2"
 prometheus = "0.13.3"
 log = "0.4.21"
 env_logger = "0.11.3"
+polars = { version = "0.42.0", features = ["lazy"] }
